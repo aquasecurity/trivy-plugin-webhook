@@ -4,7 +4,7 @@ version: "0.1.0"
 usage: send trivy results to a webhook
 description: |-
   A Trivy plugin that sends the trivy results to a webhook endpoint.
-  Usage: trivy webhook <trivy args>
+  Usage: trivy webhook -- <plugin args> -- <trivy args>
 platforms:
 - selector: # optional
     os: darwin

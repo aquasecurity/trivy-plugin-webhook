@@ -2,5 +2,11 @@
 
 ## Usage
 ```shell
-trivy webhook -- -url=<webhook-url> -- <trivy args>
+trivy webhook -- <plugin args> -- <trivy args>
 ```
+
+## Command Line Flags
+
+| Flag  | Description | Required | Example               |
+|-------|-------------|----------|-----------------------|
+| --url | Webhook URL | Yes      | `--url="example.com"` |
