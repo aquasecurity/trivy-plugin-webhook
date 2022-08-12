@@ -1,7 +1,7 @@
 name: "webhook"
 repository: github.com/aquasecurity/trivy-plugin-webhook
-version: "0.1.0"
-usage: send trivy results to a webhook
+version: "0.2.2"
+usage: trivy webhook -- <plugin args> -- <trivy args>
 description: |-
   A Trivy plugin that sends the trivy results to a webhook endpoint.
   Usage: trivy webhook -- <plugin args> -- <trivy args>
@@ -14,5 +14,5 @@ platforms:
 - selector: # optional
     os: linux
     arch: amd64
-  uri: https://github.com/aquasecurity/trivy-plugin-webhook/releases/download/v0.1.0/trivy-webhook.tar.gz
+  uri: https://github.com/aquasecurity/trivy-plugin-webhook/releases/download/v0.2.2/trivy-webhook.tar.gz
   bin: ./trivy-webhook
