@@ -1,9 +1,13 @@
+# Goland
+.idea/
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+trivy-webhook
 
 # Test binary, built with `go test -c`
 *.test
