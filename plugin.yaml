@@ -1,6 +1,6 @@
 name: "webhook"
 repository: github.com/aquasecurity/trivy-plugin-webhook
-version: "0.2.3"
+version: "0.3.0"
 usage: trivy webhook -- <plugin args> -- <trivy args>
 description: |-
   A Trivy plugin that sends the trivy results to a webhook endpoint.
@@ -9,20 +9,25 @@ platforms:
 - selector:
     os: linux
     arch: amd64
-  uri: https://github.com/aquasecurity/trivy-plugin-webhook/releases/download/v0.2.3/linux_amd64_v0.2.3.tar.gz
+  uri: https://github.com/aquasecurity/trivy-plugin-webhook/releases/download/v0.3.0/trivy-webhook_0.3.0_Linux_64bit.tar.gz
+  bin: ./trivy-webhook
+- selector:
+    os: linux
+    arch: arm
+  uri: https://github.com/aquasecurity/trivy-plugin-webhook/releases/download/v0.3.0/trivy-webhook_0.3.0_Linux_ARM.tar.gz
   bin: ./trivy-webhook
 - selector:
     os: linux
     arch: arm64
-  uri: https://github.com/aquasecurity/trivy-plugin-webhook/releases/download/v0.2.3/linux_arm64_v0.2.3.tar.gz
+  uri: https://github.com/aquasecurity/trivy-plugin-webhook/releases/download/v0.3.0/trivy-webhook_0.3.0_Linux_ARM64.tar.gz
   bin: ./trivy-webhook
 - selector:
     os: darwin
     arch: amd64
-  uri: https://github.com/aquasecurity/trivy-plugin-webhook/releases/download/v0.2.3/darwin_amd64_v0.2.3.tar.gz
+  uri: https://github.com/aquasecurity/trivy-plugin-webhook/releases/download/v0.3.0/trivy-webhook_0.3.0_macOS_64bit.tar.gz
   bin: ./trivy-webhook
 - selector:
     os: darwin
     arch: arm64
-  uri: https://github.com/aquasecurity/trivy-plugin-webhook/releases/download/v0.2.3/darwin_arm64_v0.2.3.tar.gz
+  uri: https://github.com/aquasecurity/trivy-plugin-webhook/releases/download/v0.3.0/trivy-webhook_0.3.0_macOS_ARM64.tar.gz
   bin: ./trivy-webhook
