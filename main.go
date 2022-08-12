@@ -9,23 +9,16 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"time"
 )
 
-func findTrivySep(args []string) int {
-	for i, a := range args {
-		// trivy args separator is "--"
-		if a == "--" {
-			if i+1 > len(args) {
-				return -1 // bad case if someone specifies no trivy args
-			} else {
-				return i + 1 // common case with good args
-			}
-		}
-	}
-	return -1 // bad case if no trivy sep & args specified
-}
-
 func main() {
+	flag.Usage = func() {
+		fmt.Println("trivy webhook -- -url=<webhook-url> -- <trivy args>")
+		flag.VisitAll(func(f *flag.Flag) {
+			fmt.Fprintf(os.Stderr, "     %v\n", f.Usage)
+		})
+	}
 	webhookUrl := flag.String("url", "", "webhook endpoint url")
 	flag.Parse()
 
@@ -35,13 +28,16 @@ func main() {
 	}
 
 	log.Println("running trivy...")
-	out, err := runScan()
+	out, err := runScan(os.Args, exec.Command)
 	if err != nil {
+		flag.Usage()
 		log.Fatal("trivy returned an error: ", err, "output: ", string(out))
 	}
 
 	log.Println("sending results to webhook...")
-	resp, err := sendToWebhook(webhookUrl, out)
+	resp, err := sendToWebhook(*webhookUrl, &http.Client{
+		Timeout: time.Second * 30,
+	}, out)
 	if err != nil {
 		log.Fatal("failed to send to webhook: ", err)
 	}
@@ -49,8 +45,8 @@ func main() {
 	log.Println("webhook returned: ", string(resp))
 }
 
-func sendToWebhook(webhookUrl *string, out []byte) ([]byte, error) {
-	resp, err := http.Post(*webhookUrl, "application/json", bytes.NewBuffer(out))
+func sendToWebhook(webhookUrl string, nc *http.Client, body []byte) ([]byte, error) {
+	resp, err := nc.Post(webhookUrl, "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to build post request: %s", err)
 	}
@@ -64,17 +60,35 @@ func sendToWebhook(webhookUrl *string, out []byte) ([]byte, error) {
 	return b, nil
 }
 
-func runScan() ([]byte, error) {
-	trivyArgsIndex := findTrivySep(os.Args)
+func runScan(args []string, execCmd func(string, ...string) *exec.Cmd) ([]byte, error) {
+	trivyArgsIndex := findTrivySep(args)
+	if trivyArgsIndex < 0 {
+		return nil, fmt.Errorf("invalid arguments specified")
+	}
+
 	trivyArgs := os.Args[trivyArgsIndex:]
 	trivyArgs = append(trivyArgs, []string{"--format=json", "--quiet", "--timeout=30s"}...)
 
 	log.Println("running trivy with args: ", trivyArgs)
-	out, err := exec.Command("trivy", trivyArgs...).CombinedOutput()
+	out, err := execCmd("trivy", trivyArgs...).CombinedOutput()
 	if err != nil {
 		return out, err
 	}
 
 	log.Println("trivy returned: ", string(out))
 	return out, err
+}
+
+func findTrivySep(args []string) int {
+	for i, a := range args {
+		// trivy args separator is "--"
+		if a == "--" {
+			if i+1 >= len(args) {
+				return -1 // bad case if someone specifies no trivy args
+			} else {
+				return i + 1 // common case with good args
+			}
+		}
+	}
+	return -1 // bad case if no trivy sep & args specified
 }
