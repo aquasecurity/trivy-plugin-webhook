@@ -67,6 +67,7 @@ func sendToWebhook(webhookUrl *string, out []byte) ([]byte, error) {
 func runScan() ([]byte, error) {
 	trivyArgsIndex := findTrivySep(os.Args)
 	trivyArgs := os.Args[trivyArgsIndex:]
+	trivyArgs = append(trivyArgs, []string{"--format=json", "--quiet", "--timeout=30s"}...)
 
 	log.Println("running trivy with args: ", trivyArgs)
 	out, err := exec.Command("trivy", trivyArgs...).CombinedOutput()
