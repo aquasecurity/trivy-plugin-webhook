@@ -32,7 +32,7 @@ builds:
 archives:
 - name_template: "{{ .ProjectName }}_{{.Version}}_{{ .Os }}_{{ .Arch }}"
   builds:
-  - postee
+  - trivy-webhook
   replacements:
     amd64: 64bit
     arm: ARM
