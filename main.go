@@ -48,13 +48,13 @@ func main() {
 func sendToWebhook(webhookUrl string, nc *http.Client, body []byte) ([]byte, error) {
 	resp, err := nc.Post(webhookUrl, "application/json", bytes.NewBuffer(body))
 	if err != nil {
-		return nil, fmt.Errorf("failed to build post request: %s", err)
+		return nil, fmt.Errorf("failed to build post request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %s", err)
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	return b, nil
