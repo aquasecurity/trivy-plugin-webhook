@@ -46,11 +46,10 @@ jobs:
         severity: 'CRITICAL'
         exit-code: 0
 
-#    TODO: Enable when code scanning is enabled
-#    - name: Upload Trivy scan results to GitHub Security tab
-#      uses: github/codeql-action/upload-sarif@v2
-#      with:
-#        sarif_file: 'trivy-results.sarif'
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
 
     - name: Run Trivy vulnerability scanner in IaC mode
       uses: aquasecurity/trivy-action@0.6.2
