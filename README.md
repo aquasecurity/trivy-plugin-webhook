@@ -7,7 +7,7 @@ trivy plugin install github.com/aquasecurity/trivy-plugin-webhook
 
 ## Usage
 ```shell
-trivy webhook -- <plugin args> -- <trivy args>
+trivy webhook -- <plugin flags> -- <trivy args>
 ```
 
 ## Command Line Flags
