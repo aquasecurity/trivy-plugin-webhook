@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -67,7 +68,10 @@ func runScan(args []string, execCmd func(string, ...string) *exec.Cmd) ([]byte, 
 	}
 
 	trivyArgs := os.Args[trivyArgsIndex:]
-	trivyArgs = append(trivyArgs, []string{"--format=json", "--quiet", "--timeout=30s"}...)
+	if !containsSlice(trivyArgs, "format") {
+		trivyArgs = append(trivyArgs, []string{"--format=json"}...)
+	}
+	trivyArgs = append(trivyArgs, []string{"--quiet", "--timeout=30s"}...)
 
 	log.Println("running trivy with args: ", trivyArgs)
 	out, err := execCmd("trivy", trivyArgs...).CombinedOutput()
@@ -91,4 +95,13 @@ func findTrivySep(args []string) int {
 		}
 	}
 	return -1 // bad case if no trivy sep & args specified
+}
+
+func containsSlice(haystack []string, needle string) bool {
+	for _, item := range haystack {
+		if strings.Contains(item, needle) {
+			return true
+		}
+	}
+	return false
 }
