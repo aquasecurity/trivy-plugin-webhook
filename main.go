@@ -32,7 +32,7 @@ func main() {
 	out, err := runScan(os.Args, exec.Command)
 	if err != nil {
 		flag.Usage()
-		log.Fatal("trivy returned an error: ", err, "output: ", string(out))
+		log.Fatal("trivy returned an error: ", err, " output: ", string(out))
 	}
 
 	log.Println("sending results to webhook...")
