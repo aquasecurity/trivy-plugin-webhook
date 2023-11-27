@@ -45,7 +45,7 @@ func run() error {
 		b, err := runScan(os.Args, exec.Command)
 		if err != nil {
 			flag.Usage()
-			return fmt.Errorf("trivy returned an error: %s, output: %s", err, string(b))
+			return fmt.Errorf("trivy returned an error: %w, output: %s", err, string(b))
 		}
 		out = bytes.NewBuffer(b)
 	}
