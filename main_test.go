@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -104,7 +105,7 @@ func Test_sendToWebhook(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		resp, err := sendToWebhook(ts.URL, &http.Client{Timeout: time.Second * 30}, []byte("foo bar baz"))
+		resp, err := sendToWebhook(ts.URL, &http.Client{Timeout: time.Second * 30}, bytes.NewBuffer([]byte(`foo bar baz`)))
 		require.NoError(t, err)
 		assert.Equal(t, "webhook success", string(resp))
 	})
@@ -115,7 +116,7 @@ func Test_sendToWebhook(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		resp, err := sendToWebhook(ts.URL, &http.Client{Timeout: time.Microsecond}, []byte("foo bar baz"))
+		resp, err := sendToWebhook(ts.URL, &http.Client{Timeout: time.Microsecond}, bytes.NewBuffer([]byte(`foo bar baz`)))
 		assert.Contains(t, err.Error(), "deadline exceeded")
 		assert.Empty(t, resp)
 	})
