@@ -2,10 +2,11 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/exec"
@@ -14,6 +15,13 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		slog.Error("Unexpected error", slog.String("err", err.Error()))
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	flag.Usage = func() {
 		fmt.Println("trivy webhook -- -url=<webhook-url> -- <trivy args>")
 		flag.VisitAll(func(f *flag.Flag) {
@@ -25,39 +33,46 @@ func main() {
 
 	if len(*webhookUrl) <= 0 {
 		flag.Usage()
-		log.Fatal("trivy webhook plugin expects a webhook endpoint url")
+		return errors.New("trivy webhook plugin expects a webhook endpoint url")
 	}
 
-	log.Println("running trivy...")
-	out, err := runScan(os.Args, exec.Command)
-	if err != nil {
-		flag.Usage()
-		log.Fatal("trivy returned an error: ", err, " output: ", string(out))
+	var out io.Reader
+	if flag.NArg() == 0 || (flag.NArg() == 1 && flag.Arg(0) == "-") {
+		slog.Info("Reading scanning results from stdin...")
+		out = os.Stdin
+	} else {
+		slog.Info("Running trivy...")
+		b, err := runScan(os.Args, exec.Command)
+		if err != nil {
+			flag.Usage()
+			return fmt.Errorf("trivy returned an error: %s, output: %s", err, string(b))
+		}
+		out = bytes.NewBuffer(b)
 	}
 
-	log.Println("sending results to webhook...")
+	slog.Info("Sending results to webhook...")
 	resp, err := sendToWebhook(*webhookUrl, &http.Client{
 		Timeout: time.Second * 30,
 	}, out)
 	if err != nil {
-		log.Fatal("failed to send to webhook: ", err)
+		return fmt.Errorf("failed to send to webhook: %w", err)
 	}
 
-	log.Println("webhook returned: ", string(resp))
+	slog.Info("webhook returned", slog.String("response", string(resp)))
+	return nil
 }
 
-func sendToWebhook(webhookUrl string, nc *http.Client, body []byte) ([]byte, error) {
-	resp, err := nc.Post(webhookUrl, "application/json", bytes.NewBuffer(body))
+func sendToWebhook(webhookUrl string, client *http.Client, body io.Reader) ([]byte, error) {
+	resp, err := client.Post(webhookUrl, "application/json", body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build post request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
-
 	return b, nil
 }
 
@@ -68,18 +83,15 @@ func runScan(args []string, execCmd func(string, ...string) *exec.Cmd) ([]byte, 
 	}
 
 	trivyArgs := os.Args[trivyArgsIndex:]
-	if !containsSlice(trivyArgs, "format") {
-		trivyArgs = append(trivyArgs, []string{"--format=json"}...)
-	}
 	trivyArgs = append(trivyArgs, []string{"--quiet", "--timeout=30s"}...)
 
-	log.Println("running trivy with args: ", trivyArgs)
+	slog.Info("Running trivy", slog.String("args", strings.Join(trivyArgs, " ")))
 	out, err := execCmd("trivy", trivyArgs...).CombinedOutput()
 	if err != nil {
 		return out, err
 	}
 
-	log.Println("trivy returned: ", string(out))
+	slog.Info("trivy returned", slog.String("response", string(out)))
 	return out, err
 }
 
@@ -95,13 +107,4 @@ func findTrivySep(args []string) int {
 		}
 	}
 	return -1 // bad case if no trivy sep & args specified
-}
-
-func containsSlice(haystack []string, needle string) bool {
-	for _, item := range haystack {
-		if strings.Contains(item, needle) {
-			return true
-		}
-	}
-	return false
 }
